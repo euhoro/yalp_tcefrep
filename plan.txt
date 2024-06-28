@@ -1,0 +1,10 @@
+1 pandas to csv (parquet)
+2 pandas to big query 
+3 fast api get_metrics ? 
+3 dbt 
+4 fix files
+6 add sparks ?
+7 big query - infrastructure as code ? 
+
+
+Optimize by leveraging GCS (Google Cloud Storage) and BigQuery's native support for Parquet files.
