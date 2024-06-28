@@ -14,8 +14,12 @@ gcloud iam service-accounts keys create key.json --iam-account terraform@yalp-tc
 
 sudo snap install terraform --classic
 
-create in gcp project 
+create in gcp project yalp-tcefrep
 
 enable bigquery in gcp
 enable cloud billing api 
 add terraform user to billing admins https://console.cloud.google.com/billing/XXXX-XXXX-XXX/manage?project=yalp-tcefrep
+
+https://console.cloud.google.com/apis/library?project=yalp-tcefrep ???? enable api
+https://console.cloud.google.com/apis/library/cloudresourcemanager.googleapis.com?project=yalp-tcefrep
+https://console.cloud.google.com/apis/library/serviceusage.googleapis.com?project=yalp-tcefrep

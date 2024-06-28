@@ -4,3 +4,5 @@ fastparquet
 google-cloud-bigquery
 pyspark
 jupyterlab
+
+pandas-gbq
