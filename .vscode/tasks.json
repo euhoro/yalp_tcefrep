@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Activate venv",
+            "type": "shell",
+            "command": "source ${workspaceFolder}/venv/bin/activate",  // For Ubuntu
+            // "command": "${workspaceFolder}/venv/Scripts/activate",  // For Windows
+            // "command": "source ${workspaceFolder}/venv/bin/activate",  // For macOS/Linux
+            "problemMatcher": []
+        }
+    ]
+}
