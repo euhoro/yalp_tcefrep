@@ -1,4 +1,5 @@
-fastapi
-uvicorn
-google-cloud-bigquery
-google-auth
+fastapi==0.100.0
+uvicorn==0.22.0
+google-cloud-bigquery==3.11.4
+google-auth==2.22.0
+gunicorn

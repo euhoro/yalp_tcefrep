@@ -8,3 +8,9 @@
 
 
 Optimize by leveraging GCS (Google Cloud Storage) and BigQuery's native support for Parquet files.
+
+
+issues : 
+make it 50 ms / 100 rec_per_sec
+dbt
+add more columns
