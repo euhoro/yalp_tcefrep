@@ -7,6 +7,8 @@ provider "google" {
 resource "google_project_service" "bigquery" {
   project = var.project_id
   service = "bigquery.googleapis.com"
+  disable_on_destroy          = true
+  disable_dependent_services  = true
 }
 
 resource "google_bigquery_dataset" "dataset" {
@@ -18,6 +20,8 @@ resource "google_bigquery_table" "metric_0001" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   table_id   = "metric_0001"
   project    = var.project_id
+
+  deletion_protection = false
 
   schema = <<EOF
 [
@@ -41,6 +45,8 @@ resource "google_bigquery_table" "metric" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   table_id   = "metric"
   project    = var.project_id
+
+  deletion_protection = false
 
   schema = <<EOF
 [
