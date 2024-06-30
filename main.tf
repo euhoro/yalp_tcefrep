@@ -169,7 +169,7 @@ resource "google_cloud_run_service" "default" {
 variable "image_tag" {
   description = "The tag of the Docker image to deploy"
   #default     = "latest"
-  default     = "v1.0.9"
+  default     = "v1.1.0"
 }
 
 variable "project_id" {

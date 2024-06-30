@@ -17,7 +17,7 @@ ALL_METRICS = ['avg_price_10',
                'score_perc_50_last_5_days',
                'country']
 
-version = 'v.1.0.8'
+version = 'v.1.1.0'
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ project_id = 'yalp-tcefrep'  # Replace with your actual project ID
 
 
 # df = df[df['player_id'] == '6671adc2dd588a8bda035feb']
+# country
 class PlayerMetricsRequest(BaseModel):
     player_id: str
     metric_name: str
