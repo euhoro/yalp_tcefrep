@@ -54,9 +54,9 @@ EOF
   clustering = ["player_id"]
 }
 
-resource "google_bigquery_table" "metric" {
+resource "google_bigquery_table" "app_user_panel" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
-  table_id   = "metric"
+  table_id   = "app_user_panel"
   project    = var.project_id
 
   deletion_protection = false
@@ -69,27 +69,27 @@ resource "google_bigquery_table" "metric" {
     "mode": "REQUIRED"
   },
   {
-    "name": "metric_0001",
+    "name": "country",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "avg_price_10",
     "type": "FLOAT",
     "mode": "REQUIRED"
   },
   {
-    "name": "metric_0002",
+    "name": "last_weighted_daily_matches_count_10_played_days",
     "type": "FLOAT",
     "mode": "REQUIRED"
   },
   {
-    "name": "metric_0003",
+    "name": "active_days_since_last_purchase",
     "type": "FLOAT",
     "mode": "REQUIRED"
   },
   {
-    "name": "metric_0004",
-    "type": "FLOAT",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "metric_0005",
+    "name": "score_perc_50_last_5_days",
     "type": "FLOAT",
     "mode": "REQUIRED"
   },
@@ -102,7 +102,7 @@ resource "google_bigquery_table" "metric" {
 EOF
 
   clustering = ["player_id"]
-  
+
   time_partitioning {
     type  = "DAY"
     field = "update_time"
@@ -169,7 +169,7 @@ resource "google_cloud_run_service" "default" {
 variable "image_tag" {
   description = "The tag of the Docker image to deploy"
   #default     = "latest"
-  default     = "v1.0.6"
+  default     = "v1.0.9"
 }
 
 variable "project_id" {

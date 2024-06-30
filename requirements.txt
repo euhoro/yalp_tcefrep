@@ -2,7 +2,6 @@ pandas
 pyarrow
 fastparquet
 google-cloud-bigquery
-pyspark
-jupyterlab
-
+#pyspark
+#jupyterlab
 pandas-gbq
