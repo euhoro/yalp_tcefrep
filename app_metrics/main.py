@@ -1,3 +1,5 @@
+from functools import wraps
+
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from google.cloud import bigquery
@@ -8,6 +10,12 @@ import uvicorn
 import platform
 import logging
 from fastapi.responses import JSONResponse
+
+ALL_METRICS = ['avg_price_10',
+               'last_weighted_daily_matches_count_10_played_days',
+               'active_days_since_last_purchase',
+               'score_perc_50_last_5_days',
+               'country']
 
 version = 'v.1.0.8'
 
@@ -59,11 +67,17 @@ project_id = 'yalp-tcefrep'  # Replace with your actual project ID
 # df = df[df['player_id'] == '6671adc2dd588a8bda035feb']
 class PlayerMetricsRequest(BaseModel):
     player_id: str
+    metric_name: str
 
 
 @app.get("/version")
 async def get_version():
     return version
+
+
+@app.get("/metrics")
+async def get_metrics():
+    return ALL_METRICS
 
 
 @app.get("/test_bigquery")
@@ -80,21 +94,47 @@ async def test_bigquery():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/get_metric/")
-async def get_metric(request: PlayerMetricsRequest):
-    logger.info(f"Received request for player_id: {request.player_id}")
-    start_time = time.time()
+# In-memory cache (dictionary)
+cache = {}
 
+
+def cache_check(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # player_id = kwargs.get('player_id')
+        # metric_name = kwargs.get('metric_name')
+        player_id = args[0]
+        metric_name = args[1]
+        cache_key = f"{player_id}_{metric_name}"
+
+        # Check if the result is in the cache
+        if cache_key in cache:
+            logger.info(f"Cache hit for {cache_key}")
+            return cache[cache_key]
+
+        logger.info(f"Cache miss for {cache_key}, fetching from BigQuery")
+        result = func(*args, **kwargs)
+
+        # Add result to cache
+        cache[cache_key] = result
+        logger.info(f"Added {cache_key} to cache")
+        return result
+
+    return wrapper
+
+
+@cache_check
+def service_get_metric(player_id, metric_name):
     client = initialize_bigquery_client()
 
     query = f"""
-        SELECT avg_price_10
+        SELECT {metric_name}
         FROM `{project_id}.{dataset_id}.{table_id}`
         WHERE player_id = @player_id
     """
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
-            bigquery.ScalarQueryParameter("player_id", "STRING", request.player_id)
+            bigquery.ScalarQueryParameter("player_id", "STRING", player_id)
         ]
     )
 
@@ -107,27 +147,46 @@ async def get_metric(request: PlayerMetricsRequest):
         query_time = time.time() - query_start_time
         logger.info(f"Query completed in {query_time} seconds")
 
-        metrics = [row.avg_price_10 for row in results]
+        # Convert rows to dictionaries
+        results_dicts = [dict(row) for row in results]
+
+        # Access column values by column name
+        metrics = [row[metric_name] for row in results_dicts]
+        # metrics = [row.avg_price_10 for row in results]
         logger.info(f"Query returned {len(metrics)} results")
 
         if not metrics:
-            logger.warning(f"No metrics found for player_id: {request.player_id}")
+            logger.warning(f"No metrics found for player_id: {player_id}")
             raise HTTPException(status_code=404, detail="Metric not found")
 
-        total_time = time.time() - start_time
-
-        response = {
-            "player_id": request.player_id,
-            "metric_0001": metrics[0],
-            "query_time": query_time,
-            "total_time": total_time
-        }
-        logger.info(f"Returning response: {response}")
-        return response
+        return metrics, query_time
 
     except Exception as e:
         logger.error(f"Error in get_metric: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/get_metric/")
+async def get_metric(request: PlayerMetricsRequest):
+    logger.info(f"Received request for player_id: {request.player_id}")
+
+    start_time = time.time()
+    if request.metric_name not in set(ALL_METRICS):
+        logger.warning(f"Metric not valid: {request.metric_name}")
+        raise HTTPException(status_code=422, detail="Metric not valid")
+
+    metrics, query_time = service_get_metric(request.player_id, request.metric_name)
+
+    total_time = time.time() - start_time
+
+    response = {
+        "player_id": request.player_id,
+        f"{request.metric_name}": metrics[0],
+        "query_time": query_time,
+        "total_time": total_time
+    }
+    logger.info(f"Returning response: {response}")
+    return response
 
 
 # Middleware to add processing time to response headers
@@ -138,6 +197,7 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
+
 
 # Run the server with: uvicorn app_metrics.main:app --reload
 
