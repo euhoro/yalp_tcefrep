@@ -45,7 +45,7 @@ else:
 
 # Define BigQuery dataset and table
 dataset_id = 'your_dataset'
-table_id = 'metric_0001'
+table_id = 'metric'#'metrics_mv'#'metric_0001'
 project_id = 'yalp-tcefrep'  # Replace with your actual project ID
 
 class PlayerMetricsRequest(BaseModel):

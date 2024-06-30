@@ -69,15 +69,74 @@ resource "google_bigquery_table" "metric" {
     "mode": "REQUIRED"
   },
   {
-    "name": "metric",
+    "name": "metric_0001",
     "type": "FLOAT",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "metric_0002",
+    "type": "FLOAT",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "metric_0003",
+    "type": "FLOAT",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "metric_0004",
+    "type": "FLOAT",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "metric_0005",
+    "type": "FLOAT",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "update_time",
+    "type": "TIMESTAMP",
     "mode": "REQUIRED"
   }
 ]
 EOF
 
   clustering = ["player_id"]
+  
+  time_partitioning {
+    type  = "DAY"
+    field = "update_time"
+  }
 }
+
+resource "google_bigquery_reservation" "bi_engine" {
+  project    = var.project_id
+  location   = "US"  # adjust as needed
+  name       = "bi-engine-reservation"
+  slot_capacity = 100  # adjust based on your needs and budget
+}
+
+# resource "google_bigquery_table" "metrics_mv" {
+#   dataset_id = google_bigquery_dataset.dataset.dataset_id
+#   table_id   = "metrics_mv"
+#   project    = var.project_id
+
+#   deletion_protection = false
+
+#   materialized_view {
+#     query = <<EOF
+#     SELECT player_id, metric_0001, metric_0002, metric_0003, metric_0004, metric_0005
+#     FROM (
+#       SELECT player_id, metric,
+#              ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY update_time DESC) as rn
+#       FROM `${var.project_id}.${google_bigquery_dataset.dataset.dataset_id}.metric`
+#     )
+#     WHERE rn = 1
+#     EOF
+#     enable_refresh = true
+#     refresh_interval_ms = 14400000  # 4 hours in milliseconds
+#   }
+# }
 
 resource "google_cloud_run_service" "default" {
   name     = var.service_name
@@ -109,7 +168,8 @@ resource "google_cloud_run_service" "default" {
 
 variable "image_tag" {
   description = "The tag of the Docker image to deploy"
-  default     = "v1.0.5"
+  #default     = "latest"
+  default     = "v1.0.6"
 }
 
 variable "project_id" {
