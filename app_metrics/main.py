@@ -1,3 +1,4 @@
+import asyncio
 from functools import wraps
 
 from fastapi import FastAPI, HTTPException, Request
@@ -17,7 +18,7 @@ ALL_METRICS = ['avg_price_10',
                'score_perc_50_last_5_days',
                'country']
 
-version = 'v.1.1.0'
+version = 'v.1.1.1'
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -70,6 +71,9 @@ class PlayerMetricsRequest(BaseModel):
     player_id: str
     metric_name: str
 
+@app.get("/")
+async def get_home():
+    return f"welcome to user_panel version  {version}"
 
 @app.get("/version")
 async def get_version():
@@ -96,7 +100,47 @@ async def test_bigquery():
 
 
 # In-memory cache (dictionary)
+# Cache and lock for thread-safe updates
 cache = {}
+lock = asyncio.Lock()
+
+# # Start cache updater task on startup
+# @app.on_event("startup")
+# async def startup_event():
+#     loop = asyncio.get_event_loop()
+#     loop.create_task(update_cache())
+
+# # Function to load data from BigQuery
+# async def load_data_from_bigquery():
+#     #query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}"
+#     query = f"SELECT player_id, avg_price_10,
+#                last_weighted_daily_matches_count_10_played_days,
+#                active_days_since_last_purchase,
+#                score_perc_50_last_5_days,
+#                country FROM {project_id}.{dataset_id}.{table_id}"
+#     #cache_key = f"{player_id}_{metric_name}"
+#     query_job = client.query(query)
+#     result = query_job.result()
+#     #data = [dict(row) for row in result]
+#     new_cache = {}
+#     for row in result:
+#         data_row = [dict(row) for row in result]
+#         for metric_name in data_row:
+#             if metric_name == 'player_id':
+#                 continue
+#             cache_key = f"{data_row['player_id']}_{metric_name}"
+#             new_cache[cache_key] = row[f'{metric_name}']
+
+#     return new_cache
+
+# # Function to update cache
+# async def update_cache():
+#     global cache
+#     while True:
+#         new_cache = await load_data_from_bigquery()
+#         async with lock:
+#             cache = new_cache
+#         await asyncio.sleep(36000)  # Reload cache every 10 hours
 
 
 def cache_check(func):

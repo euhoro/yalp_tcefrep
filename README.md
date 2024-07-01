@@ -81,10 +81,10 @@ gcloud config set project yalp-tcefrep
 
 
 # Authenticate Docker to use GCR/Artifact Registry
-gcloud auth activate-service-account --key-file=/Users/euhoro/PycharmProjects/yalp_tcefrep/key_docker_pusher.json
+gcloud auth activate-service-account --key-file=key.json
 gcloud auth configure-docker us-central1-docker.pkg.dev
-docker build -t us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.0.7 .
-docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.0.7
+docker build -t us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0 .
+docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0
 
 
 key_docker_pusher.json
@@ -102,5 +102,8 @@ mac - build image for x86
 docker buildx build --platform linux/amd64 -t fastapi-metrics:v1.1.0 --load .
 docker tag fastapi-metrics:v1.1.0 us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0
 docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0
+
+enable api manually 
+on destroy delete database and reservation ? ( dependant on terraform )
 
 
