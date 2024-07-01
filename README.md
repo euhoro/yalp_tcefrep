@@ -66,3 +66,34 @@ docker push gcr.io/yalp-tcefrep/fastapi-metrics
 
 #logs : 
 gcloud beta run services logs read fastapi-metrics --region=us-central1
+
+
+1: put raw_data (parquet files ) in the root folder 
+2: setup gcp ( for locally - put key.json in the root folder  - make sure apis are enabled ( big query api )
+3. Docker build
+
+gcloud auth activate-service-account --key-file=key.json
+gcloud auth configure-docker us-central1-docker.pkg.dev
+docker build -t us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.0.9 .
+docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.0.9
+
+gcloud config set project yalp-tcefrep
+
+
+# Authenticate Docker to use GCR/Artifact Registry
+gcloud auth activate-service-account --key-file=/Users/euhoro/PycharmProjects/yalp_tcefrep/key_docker_pusher.json
+gcloud auth configure-docker us-central1-docker.pkg.dev
+docker build -t us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.0.7 .
+docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.0.7
+
+
+key_docker_pusher.json
+
+
+4.Setup the terraform env - terraform init , terraform apply .  upload all the parquet to s3 ( gap ) setup lambda to run every 1 hour
+— Batch to big query activate every hour , api up , can be queried at the end of the process there will be an api point . 
+Api can be queried - 
+
+Locally -
+Docker build - pandas to css
+Fastapi to in mem dictionary 
