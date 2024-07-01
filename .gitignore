@@ -169,3 +169,5 @@ raw_data
 terraform.*
 *.tfstate
 
+terraform copy.tfstate
+terraform.tfstate
