@@ -97,3 +97,10 @@ Api can be queried -
 Locally -
 Docker build - pandas to css
 Fastapi to in mem dictionary 
+
+mac - build image for x86
+docker buildx build --platform linux/amd64 -t fastapi-metrics:v1.1.0 --load .
+docker tag fastapi-metrics:v1.1.0 us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0
+docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0
+
+
