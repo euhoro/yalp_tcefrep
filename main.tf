@@ -115,28 +115,27 @@ resource "google_bigquery_reservation" "bi_engine" {
   name       = "bi-engine-reservation"
   slot_capacity = 100  # adjust based on your needs and budget
 }
+resource "google_bigquery_table" "metrics_view" {
+  dataset_id = google_bigquery_dataset.dataset.dataset_id
+  table_id   = "metrics_view"
+  project    = var.project_id
 
-# resource "google_bigquery_table" "metrics_mv" {
-#   dataset_id = google_bigquery_dataset.dataset.dataset_id
-#   table_id   = "metrics_mv"
-#   project    = var.project_id
+  deletion_protection = false
 
-#   deletion_protection = false
+  view {
+    query = <<EOF
+    SELECT player_id, avg_price_10 , last_weighted_daily_matches_count_10_played_days, active_days_since_last_purchase, score_perc_50_last_5_days, country
+    FROM (
+      SELECT player_id, avg_price_10 , last_weighted_daily_matches_count_10_played_days, active_days_since_last_purchase, score_perc_50_last_5_days, country,
+             ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY update_time DESC) as rn
+      FROM `${var.project_id}.${google_bigquery_dataset.dataset.dataset_id}.app_user_panel`
+    )
+    WHERE rn = 1
+    EOF
+    use_legacy_sql = false
+  }
+}
 
-#   materialized_view {
-#     query = <<EOF
-#     SELECT player_id, metric_0001, metric_0002, metric_0003, metric_0004, metric_0005
-#     FROM (
-#       SELECT player_id, metric,
-#              ROW_NUMBER() OVER (PARTITION BY player_id ORDER BY update_time DESC) as rn
-#       FROM `${var.project_id}.${google_bigquery_dataset.dataset.dataset_id}.metric`
-#     )
-#     WHERE rn = 1
-#     EOF
-#     enable_refresh = true
-#     refresh_interval_ms = 14400000  # 4 hours in milliseconds
-#   }
-# }
 
 resource "google_cloud_run_service" "default" {
   name     = var.service_name
