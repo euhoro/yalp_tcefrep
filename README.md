@@ -82,26 +82,30 @@ This project provides a FastAPI service for accessing player metrics stored in G
 
 The FastAPI service provides an endpoint to get player metrics. The service looks in the cache first and then queries BigQuery if the data is not cached. The cache is refreshed periodically.
 
+Access the application:
+   - [API Documentation](http://127.0.0.1:8000/docs)
+   - [Home](http://127.0.0.1:8000)
+
 - **Endpoint:** `GET /get_metric/`
 
-- **Request Body:**
-    ```json
-    {
-      "player_id": "6671adc2dd588a8bda0367bb",
-      "metric_name": "country"
-    }
-    ```
+   - **Request Body:**
+       ```json
+       {
+         "player_id": "6671adc2dd588a8bda0367bb",
+         "metric_name": "country"
+       }
+       ```
 
-- **Response:**
-    ```json
-    {
-      "player_id": "6671adc2dd588a8bda0367bb",
-      "country": "USA",
-      "query_time": 0.34,
-      "total_time": 0.35
-    }
-    ```
-  * query_time will be -1 if request reached the cache
+   - **Response:**
+       ```json
+       {
+         "player_id": "6671adc2dd588a8bda0367bb",
+         "country": "USA",
+         "query_time": 0.34,
+         "total_time": 0.35
+       }
+       ```
+     * query_time will be -1 if request reached the cache
 
 ### Design 
 - [Design Documentation](https://github.com/euhoro/yalp_tcefrep/blob/main/DESIGN.md)
