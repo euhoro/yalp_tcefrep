@@ -92,6 +92,24 @@ def calculate_metrics(df):
     return aggregated_df
 
 
+def upload_to_bigquery(df_agg):
+
+    current_date = pd.Timestamp.now().date()
+    df_agg['update_time'] = pd.Timestamp.now()
+    from google.cloud import bigquery
+    # Initialize a BigQuery client
+    client = bigquery.Client()
+    # Define BigQuery dataset and table
+    dataset_id = 'your_dataset'
+    table_id = 'app_user_panel'  # 'metrics_mv'#'metric_0001'
+    project_id = 'yalp-tcefrep'  # Replace with your actual project ID
+    # Define the destination table reference
+    table_ref = client.dataset(dataset_id).table(table_id)
+    # Upload the DataFrame to BigQuery
+    df_agg.to_gbq(destination_table=f'{dataset_id}.{table_id}', project_id=project_id, if_exists='replace')
+    print("Data uploaded to BigQuery successfully.")
+
+
 if __name__ == '__main__':
     try:
 
@@ -105,27 +123,7 @@ if __name__ == '__main__':
         #df = df[df['player_id'] == '6671adc2dd588a8bda035feb']
         aggregated_df_all = calculate_metrics(df)
 
-        current_date = pd.Timestamp.now().date()
-
-        aggregated_df_all['update_time'] = pd.Timestamp.now()
-
-        from google.cloud import bigquery
-
-        # Initialize a BigQuery client
-        client = bigquery.Client()
-
-        # Define BigQuery dataset and table
-        dataset_id = 'your_dataset'
-        table_id = 'app_user_panel'  # 'metrics_mv'#'metric_0001'
-        project_id = 'yalp-tcefrep'  # Replace with your actual project ID
-
-        # Define the destination table reference
-        table_ref = client.dataset(dataset_id).table(table_id)
-
-        # Upload the DataFrame to BigQuery
-        aggregated_df_all.to_gbq(destination_table=f'{dataset_id}.{table_id}', project_id=project_id, if_exists='replace')
-
-        print("Data uploaded to BigQuery successfully.")
+        upload_to_bigquery(aggregated_df_all)
 
     except Exception as e:
         print(f"Error: {e}")
