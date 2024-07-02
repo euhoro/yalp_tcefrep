@@ -35,9 +35,11 @@ This project provides a FastAPI service for accessing player metrics stored in G
       - Owner
       - Storage Admin
 
-    Download the key file and place it in the root folder of the project as `key.json`.
+3. **    Download the key file and place it in the root folder of the project as `key.json`.
 
-3. **Initialize and Apply Terraform:**
+4. **    Place the raw_data folders containing the parquet files in the root folder
+
+5. **Initialize and Apply Terraform:**
 
     ```bash
     terraform init
@@ -47,7 +49,7 @@ This project provides a FastAPI service for accessing player metrics stored in G
     This will create the `yalp_tcefrep` bucket and the necessary structure for the BigQuery table.
     This will create the api available in the gcp cloud for easy access 
 
-4. **Setup Python Environment:**
+6. **Setup Python Environment:**
 
     Create a virtual environment and activate it:
 
@@ -56,13 +58,13 @@ This project provides a FastAPI service for accessing player metrics stored in G
     source venv/bin/activate
     ```
 
-5. **Install Required Python Packages:**
+7. **Install Required Python Packages:**
 
     ```bash
     pip install -r requirements.txt
     ```
 
-6. **Populate BigQuery Table:**
+8. **Populate BigQuery Table:**
 
     Run the following command to populate the BigQuery table:
 
@@ -71,7 +73,7 @@ This project provides a FastAPI service for accessing player metrics stored in G
     python notebooks/pandas_file_to_big_query.py
     ```
 
-7. **Build and Run Docker Container locally:**
+9. **Build and Run Docker Container locally:**
 
     ```bash
     docker build -t fastapi-metrics:v1.1.0 .
