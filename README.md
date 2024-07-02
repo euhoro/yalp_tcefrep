@@ -4,6 +4,9 @@
 
 This project provides a FastAPI service for accessing player metrics stored in Google BigQuery. It includes an in-memory caching mechanism to optimize performance by reducing the number of direct queries to BigQuery.
 
+### Design 
+- [Design Documentation](https://github.com/euhoro/yalp-tcefrep.git/DESIGN.md)
+
 ## Prerequisites
 
 - [Git](https://git-scm.com/)
@@ -17,7 +20,7 @@ This project provides a FastAPI service for accessing player metrics stored in G
 1. **Clone the Repository:**
 
     ```bash
-    git clone https://github.com/your-repo/yalp-tcefrep.git
+    git clone https://github.com/euhoro/yalp-tcefrep.git
     cd yalp-tcefrep
     ```
 
@@ -45,13 +48,14 @@ This project provides a FastAPI service for accessing player metrics stored in G
     ```
 
     This will create the `yalp_tcefrep` bucket and the necessary structure for the BigQuery table.
+    This will create the api available in the gcp cloud for easy access 
 
 4. **Setup Python Environment:**
 
     Create a virtual environment and activate it:
 
     ```bash
-    python -m venv venv
+    python3 -m venv venv
     source venv/bin/activate
     ```
 
@@ -70,7 +74,7 @@ This project provides a FastAPI service for accessing player metrics stored in G
     python notebooks/pandas_file_to_big_query.py
     ```
 
-7. **Build and Run Docker Container:**
+7. **Build and Run Docker Container locally:**
 
     ```bash
     docker build -t fastapi-metrics:v1.1.0 .
@@ -100,3 +104,4 @@ The FastAPI service provides an endpoint to get player metrics. The service look
       "total_time": 0.35
     }
     ```
+  * query_time will be -1 if request reached the cache
