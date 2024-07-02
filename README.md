@@ -83,8 +83,8 @@ This project provides a FastAPI service for accessing player metrics stored in G
 The FastAPI service provides an endpoint to get player metrics. The service looks in the cache first and then queries BigQuery if the data is not cached. The cache is refreshed periodically.
 
 Access the application:
-   - [API Documentation](http://127.0.0.1:8000/docs)
-   - [Home](http://127.0.0.1:8000)
+   - [API Documentation](http://localhost:8080/docs)
+   - [Home](http://localhost:8080/)
 
 - **Endpoint:** `GET /get_metric/`
 
