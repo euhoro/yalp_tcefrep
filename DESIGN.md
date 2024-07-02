@@ -29,32 +29,41 @@ graph TD
     E --> F[Update Cache]
     F --> C[Return Data]
 ```
+## How Cache Works
 
-How Cache Works
-Cache Initialization:
+### Cache Initialization:
 
-On startup, the cache is initialized and periodically refreshed every 10 hours with data from BigQuery.
-Cache Check:
+- On startup, the cache is initialized and periodically refreshed every 10 hours with data from BigQuery.
 
-When a request is made to get_metric, the service first checks if the data is in the cache.
-If a cache hit occurs, the data is returned from the cache.
-If a cache miss occurs, the service queries BigQuery for the data, updates the cache, and returns the data to the user.
-Cache Refresh:
+### Cache Check:
 
-The cache is refreshed every 10 hours by querying all necessary data from BigQuery.
-Error Handling
+- When a request is made to `get_metric`, the service first checks if the data is in the cache.
+- If a cache hit occurs, the data is returned from the cache.
+- If a cache miss occurs, the service queries BigQuery for the data, updates the cache, and returns the data to the user.
+
+### Cache Refresh:
+
+- The cache is refreshed every 10 hours by querying all necessary data from BigQuery.
+
+## Error Handling
+
 The service includes comprehensive error handling, including:
 
-Logging of unhandled exceptions.
-Handling BigQuery BadRequest exceptions.
-Returning appropriate HTTP status codes and error messages for client and server errors.
-Running the Server
+- Logging of unhandled exceptions.
+- Handling BigQuery `BadRequest` exceptions.
+- Returning appropriate HTTP status codes and error messages for client and server errors.
+
+## Running the Server
+
 To run the server locally:
 
-bash
-Copy code
+```bash
 uvicorn app:app --reload
-The service will be available at http://127.0.0.1:8000.
+```
+
+Access the application:
+   - [API Documentation](http://127.0.0.1:8000/docs)
+   - [Home](http://127.0.0.1:8000)
 
 Contributing
 We welcome contributions! Please read our contributing guidelines for more details.
