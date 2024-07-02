@@ -35,9 +35,9 @@ This project provides a FastAPI service for accessing player metrics stored in G
       - Owner
       - Storage Admin
 
-3. **    Download the key file and place it in the root folder of the project as `key.json`.
+3. **Download the key file and place it in the root folder of the project as `key.json`.**
 
-4. **    Place the raw_data folders containing the parquet files in the root folder
+4. **Place the raw_data folders containing the parquet files in the root folder**
 
 5. **Initialize and Apply Terraform:**
 
