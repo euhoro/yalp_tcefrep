@@ -107,3 +107,14 @@ enable api manually
 on destroy delete database and reservation ? ( dependant on terraform )
 
 
+{
+  "player_id": "6671adc2dd588a8bda0367bb",
+  "metric_name": "country"
+}
+
+uvicorn app_metrics.main:app --host=0.0.0.0 --port=8080
+docker build -t fastapi-metrics:v1.0.9 .
+docker run -p 8080:8080 fastapi-metrics:v1.0.9
+
+
+

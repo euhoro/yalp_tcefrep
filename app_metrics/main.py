@@ -1,8 +1,7 @@
 import asyncio
 from functools import wraps
 
-from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel
+from fastapi import HTTPException, Request
 from google.cloud import bigquery
 from google.oauth2 import service_account
 import os
@@ -11,6 +10,9 @@ import uvicorn
 import platform
 import logging
 from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Body
+from pydantic import BaseModel
+from starlette.responses import RedirectResponse
 
 ALL_METRICS = ['avg_price_10',
                'last_weighted_daily_matches_count_10_played_days',
@@ -71,32 +73,39 @@ class PlayerMetricsRequest(BaseModel):
     player_id: str
     metric_name: str
 
-@app.get("/")
+
+#
+# @app.get("/")
+# async def get_home():
+#     return f"welcome to user_panel version  {version} - access docs api for  details "
+
+@app.get("/", response_class=RedirectResponse)
 async def get_home():
-    return f"welcome to user_panel version  {version}"
+    return RedirectResponse(url="/docs")
+
 
 @app.get("/version")
 async def get_version():
     return version
 
 
-@app.get("/metrics")
-async def get_metrics():
-    return ALL_METRICS
+# @app.get("/metrics")
+# async def get_metrics():
+#     return ALL_METRICS
 
-
-@app.get("/test_bigquery")
-async def test_bigquery():
-    try:
-        client = initialize_bigquery_client()
-        query = "SELECT 1"
-        query_job = client.query(query)
-        results = query_job.result()
-        for row in results:
-            return {"result": row[0]}
-    except Exception as e:
-        logger.error(f"BigQuery test failed: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+#
+# @app.get("/test_bigquery")
+# async def test_bigquery():
+#     try:
+#         client = initialize_bigquery_client()
+#         query = "SELECT 1"
+#         query_job = client.query(query)
+#         results = query_job.result()
+#         for row in results:
+#             return {"result": row[0]}
+#     except Exception as e:
+#         logger.error(f"BigQuery test failed: {str(e)}", exc_info=True)
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 # In-memory cache (dictionary)
@@ -104,43 +113,45 @@ async def test_bigquery():
 cache = {}
 lock = asyncio.Lock()
 
-# # Start cache updater task on startup
-# @app.on_event("startup")
-# async def startup_event():
-#     loop = asyncio.get_event_loop()
-#     loop.create_task(update_cache())
 
-# # Function to load data from BigQuery
-# async def load_data_from_bigquery():
-#     #query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}"
-#     query = f"SELECT player_id, avg_price_10,
-#                last_weighted_daily_matches_count_10_played_days,
-#                active_days_since_last_purchase,
-#                score_perc_50_last_5_days,
-#                country FROM {project_id}.{dataset_id}.{table_id}"
-#     #cache_key = f"{player_id}_{metric_name}"
-#     query_job = client.query(query)
-#     result = query_job.result()
-#     #data = [dict(row) for row in result]
-#     new_cache = {}
-#     for row in result:
-#         data_row = [dict(row) for row in result]
-#         for metric_name in data_row:
-#             if metric_name == 'player_id':
-#                 continue
-#             cache_key = f"{data_row['player_id']}_{metric_name}"
-#             new_cache[cache_key] = row[f'{metric_name}']
+# Start cache updater task on startup
+@app.on_event("startup")
+async def startup_event():
+    loop = asyncio.get_event_loop()
+    loop.create_task(update_cache())
 
-#     return new_cache
 
-# # Function to update cache
-# async def update_cache():
-#     global cache
-#     while True:
-#         new_cache = await load_data_from_bigquery()
-#         async with lock:
-#             cache = new_cache
-#         await asyncio.sleep(36000)  # Reload cache every 10 hours
+# Function to load data from BigQuery
+async def load_data_from_bigquery():
+    # query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}"
+    query = f"SELECT player_id, avg_price_10 , last_weighted_daily_matches_count_10_played_days, active_days_since_last_purchase,score_perc_50_last_5_days, country FROM {project_id}.{dataset_id}.{table_id}"
+    # cache_key = f"{player_id}_{metric_name}"
+    client = initialize_bigquery_client()
+    query_job = client.query(query)
+    result = query_job.result()
+    # data = [dict(row) for row in result]
+    new_cache = {}
+    for row in result:
+        data_row = dict(row)
+
+        for metric_name in data_row:
+            if metric_name == 'player_id':
+                continue
+            cache_key = f"{data_row['player_id']}_{metric_name}"
+            new_cache[cache_key] = row[f'{metric_name}']
+
+    return new_cache
+    # return {}
+
+
+# Function to update cache
+async def update_cache():
+    global cache
+    while True:
+        new_cache = await load_data_from_bigquery()
+        async with lock:
+            cache = new_cache
+        await asyncio.sleep(36000)  # Reload cache every 10 hours
 
 
 def cache_check(func):
@@ -155,7 +166,7 @@ def cache_check(func):
         # Check if the result is in the cache
         if cache_key in cache:
             logger.info(f"Cache hit for {cache_key}")
-            return cache[cache_key]
+            return cache[cache_key], -1
 
         logger.info(f"Cache miss for {cache_key}, fetching from BigQuery")
         result = func(*args, **kwargs)
@@ -204,7 +215,7 @@ def service_get_metric(player_id, metric_name):
             logger.warning(f"No metrics found for player_id: {player_id}")
             raise HTTPException(status_code=404, detail="Metric not found")
 
-        return metrics, query_time
+        return metrics[0], query_time
 
     except Exception as e:
         logger.error(f"Error in get_metric: {str(e)}", exc_info=True)
@@ -212,7 +223,10 @@ def service_get_metric(player_id, metric_name):
 
 
 @app.post("/get_metric/")
-async def get_metric(request: PlayerMetricsRequest):
+async def get_metric(request: PlayerMetricsRequest = Body(..., example={
+    "player_id": "6671adc2dd588a8bda0367bb",
+    "metric_name": "country"
+})):
     logger.info(f"Received request for player_id: {request.player_id}")
 
     start_time = time.time()
@@ -226,7 +240,7 @@ async def get_metric(request: PlayerMetricsRequest):
 
     response = {
         "player_id": request.player_id,
-        f"{request.metric_name}": metrics[0],
+        f"{request.metric_name}": metrics,
         "query_time": query_time,
         "total_time": total_time
     }

@@ -5,3 +5,5 @@ google-cloud-bigquery
 #pyspark
 #jupyterlab
 pandas-gbq
+dbt-bigquery
+#airflow
