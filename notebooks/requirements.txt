@@ -1,0 +1,11 @@
+pandas
+pyarrow
+fastparquet
+google-cloud-bigquery
+#pyspark
+#jupyterlab
+pandas-gbq
+#dbt-bigquery
+#airflow
+Flask==2.3.3
+google-cloud-storage

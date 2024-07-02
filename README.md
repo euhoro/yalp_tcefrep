@@ -1,120 +1,102 @@
-# yalp_tcefrep
-yalp_tcefrep
+# Yalp Tcefrep Project
 
-#https://cloud.google.com/sdk/docs/install
-sudo snap install google-cloud-sdk --classic
-gcloud iam service-accounts create terraform --display-name "Terraform admin account"
+## Overview
 
-project same as git - yalp-tcefrep
+This project provides a FastAPI service for accessing player metrics stored in Google BigQuery. It includes an in-memory caching mechanism to optimize performance by reducing the number of direct queries to BigQuery.
 
-gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> --member serviceAccount:terraform@<YOUR_PROJECT_ID>.iam.gserviceaccount.com --role roles/owner
-gcloud projects add-iam-policy-binding yalp-tcefrep --member serviceAccount:terraform@yalp-tcefrep.iam.gserviceaccount.com --role roles/owner
+## Prerequisites
 
-gcloud iam service-accounts keys create key.json --iam-account terraform@yalp-tcefrep.iam.gserviceaccount.com
+- [Git](https://git-scm.com/)
+- [Terraform](https://www.terraform.io/)
+- [Python](https://www.python.org/downloads/)
+- [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
+- [Docker](https://www.docker.com/products/docker-desktop)
 
-sudo snap install terraform --classic
+## Installation
 
-create in gcp project yalp-tcefrep
+1. **Clone the Repository:**
 
-enable bigquery in gcp
-enable cloud billing api 
-add terraform user to billing admins https://console.cloud.google.com/billing/XXXX-XXXX-XXX/manage?project=yalp-tcefrep
+    ```bash
+    git clone https://github.com/your-repo/yalp-tcefrep.git
+    cd yalp-tcefrep
+    ```
 
-https://console.cloud.google.com/apis/library?project=yalp-tcefrep ???? enable api
-https://console.cloud.google.com/apis/library/cloudresourcemanager.googleapis.com?project=yalp-tcefrep
-https://console.cloud.google.com/apis/library/serviceusage.googleapis.com?project=yalp-tcefrep
+2. **Add an Admin Service Account:**
 
+    Ensure you have the following service account with the necessary roles in your GCP project:
+    
+    - Email: `terraform@yalp-tcefrep.iam.gserviceaccount.com`
+    - Roles:
+      - Artifact Registry Administrator
+      - Artifact Registry Writer
+      - BigQuery User
+      - Container Analysis Occurrences Viewer
+      - Editor
+      - Owner
+      - Storage Admin
 
+    Download the key file and place it in the root folder of the project as `key.json`.
 
+3. **Initialize and Apply Terraform:**
 
-#deployment can be done with terraform or cli
-https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=173982698358
+    ```bash
+    terraform init
+    terraform apply
+    ```
 
-gcloud auth configure-docker
+    This will create the `yalp_tcefrep` bucket and the necessary structure for the BigQuery table.
 
-gcloud projects add-iam-policy-binding yalp-tcefrep --member=user:<USER_EMAIL> --role=roles/storage.admin
+4. **Setup Python Environment:**
 
-/home/<USER_NAME_UBUNTU>/.config/gcloud/application_default_credentials.json
+    Create a virtual environment and activate it:
 
+    ```bash
+    python -m venv venv
+    source venv/bin/activate
+    ```
 
-###docker 
-gcloud iam service-accounts create docker-pusher --display-name "Docker Pusher Service Account"
-gcloud projects add-iam-policy-binding yalp-tcefrep --member=serviceAccount:docker-pusher@yalp-tcefrep.iam.gserviceaccount.com --role=roles/storage.admin
-gcloud iam service-accounts keys create ~/key.json --iam-account=docker-pusher@yalp-tcefrep.iam.gserviceaccount.com
+5. **Install Required Python Packages:**
 
-gcloud auth activate-service-account --key-file ~/key.json
-gcloud auth configure-docker
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-export GOOGLE_APPLICATION_CREDENTIALS="~/key.json"
-gcloud artifacts repositories create fastapi-metrics-repo --repository-format=docker --location=us --description="Docker repository for FastAPI metrics"
+6. **Populate BigQuery Table:**
 
+    Run the following command to populate the BigQuery table:
 
+    ```bash
+    export GOOGLE_APPLICATION_CREDENTIALS="key.json"
+    python notebooks/pandas_file_to_big_query.py
+    ```
 
+7. **Build and Run Docker Container:**
 
-yalp-tcefrep
+    ```bash
+    docker build -t fastapi-metrics:v1.1.0 .
+    docker run -p 8080:8080 fastapi-metrics:v1.1.0
+    ```
 
-docker build -t gcr.io/yalp-tcefrep/fastapi-metrics .
-docker push gcr.io/yalp-tcefrep/fastapi-metrics
+## Usage
 
+The FastAPI service provides an endpoint to get player metrics. The service looks in the cache first and then queries BigQuery if the data is not cached. The cache is refreshed periodically.
 
-#gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/fastapi-metrics
-#gcloud run deploy --image gcr.io/YOUR_PROJECT_ID/fastapi-metrics --platform managed
+- **Endpoint:** `GET /get_metric/`
 
+- **Request Body:**
+    ```json
+    {
+      "player_id": "6671adc2dd588a8bda0367bb",
+      "metric_name": "country"
+    }
+    ```
 
-#enable some more apis -- https://console.developers.google.com/apis/api/run.googleapis.com/overview?project=yalp-tcefrep
-
-
-#logs : 
-gcloud beta run services logs read fastapi-metrics --region=us-central1
-
-
-1: put raw_data (parquet files ) in the root folder 
-2: setup gcp ( for locally - put key.json in the root folder  - make sure apis are enabled ( big query api )
-3. Docker build
-
-gcloud auth activate-service-account --key-file=key.json
-gcloud auth configure-docker us-central1-docker.pkg.dev
-docker build -t us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.0.9 .
-docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.0.9
-
-gcloud config set project yalp-tcefrep
-
-
-# Authenticate Docker to use GCR/Artifact Registry
-gcloud auth activate-service-account --key-file=key.json
-gcloud auth configure-docker us-central1-docker.pkg.dev
-docker build -t us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0 .
-docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0
-
-
-key_docker_pusher.json
-
-
-4.Setup the terraform env - terraform init , terraform apply .  upload all the parquet to s3 ( gap ) setup lambda to run every 1 hour
-— Batch to big query activate every hour , api up , can be queried at the end of the process there will be an api point . 
-Api can be queried - 
-
-Locally -
-Docker build - pandas to css
-Fastapi to in mem dictionary 
-
-mac - build image for x86
-docker buildx build --platform linux/amd64 -t fastapi-metrics:v1.1.0 --load .
-docker tag fastapi-metrics:v1.1.0 us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0
-docker push us-central1-docker.pkg.dev/yalp-tcefrep/fastapi-metrics-repo/fastapi-metrics:v1.1.0
-
-enable api manually 
-on destroy delete database and reservation ? ( dependant on terraform )
-
-
-{
-  "player_id": "6671adc2dd588a8bda0367bb",
-  "metric_name": "country"
-}
-
-uvicorn app_metrics.main:app --host=0.0.0.0 --port=8080
-docker build -t fastapi-metrics:v1.0.9 .
-docker run -p 8080:8080 fastapi-metrics:v1.0.9
-
-
-
+- **Response:**
+    ```json
+    {
+      "player_id": "6671adc2dd588a8bda0367bb",
+      "country": "USA",
+      "query_time": 0.34,
+      "total_time": 0.35
+    }
+    ```
