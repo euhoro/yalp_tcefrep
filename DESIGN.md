@@ -28,6 +28,7 @@ graph TD
     D --> E[Return Data]
     E --> F[Update Cache]
     F --> C[Return Data]
+```
 
 How Cache Works
 Cache Initialization:

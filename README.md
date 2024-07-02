@@ -4,9 +4,6 @@
 
 This project provides a FastAPI service for accessing player metrics stored in Google BigQuery. It includes an in-memory caching mechanism to optimize performance by reducing the number of direct queries to BigQuery.
 
-### Design 
-- [Design Documentation](https://github.com/euhoro/yalp-tcefrep.git/DESIGN.md)
-
 ## Prerequisites
 
 - [Git](https://git-scm.com/)
@@ -105,3 +102,6 @@ The FastAPI service provides an endpoint to get player metrics. The service look
     }
     ```
   * query_time will be -1 if request reached the cache
+
+### Design 
+- [Design Documentation](https://github.com/euhoro/yalp_tcefrep/blob/main/DESIGN.md)
